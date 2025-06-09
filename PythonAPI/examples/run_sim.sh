@@ -1,1 +1,1 @@
-python -m ipdb relight.py --images-per-lighting=1200 --output-dir /home/lewa/hpc_sshfs/morespace2/carla_relit
+python -m ipdb relight.py --images-per-lighting=1500 --output-dir /home/lewa/hpc_sshfs/morespace2/carla_relit

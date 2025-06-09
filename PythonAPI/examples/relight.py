@@ -50,11 +50,11 @@ class CarlaRelightSimulator:
                 'precipitation_deposits': 85, 'wind_intensity': 90, 'fog_density': 20, 'fog_distance': 50, 'wetness': 80,
                 'name': 'heavy_rain'
             },
-            {
-                'sun_altitude_angle': 50, 'cloudiness': 90, 'precipitation': 30, 'sun_azimuth_angle': 315,
-                'precipitation_deposits': 40, 'wind_intensity': 45, 'fog_density': 10, 'fog_distance': 100, 'wetness': 60,
-                'name': 'light_rain'
-            },
+            # {
+            #     'sun_altitude_angle': 50, 'cloudiness': 90, 'precipitation': 30, 'sun_azimuth_angle': 315,
+            #     'precipitation_deposits': 40, 'wind_intensity': 45, 'fog_density': 10, 'fog_distance': 100, 'wetness': 60,
+            #     'name': 'light_rain'
+            # },
             {
                 'sun_altitude_angle': 90, 'cloudiness': 0, 'precipitation': 0, 'sun_azimuth_angle': 0,
                 'precipitation_deposits': 0, 'wind_intensity': 10, 'fog_density': 0, 'fog_distance': 200, 'wetness': 0,
@@ -85,27 +85,26 @@ class CarlaRelightSimulator:
                 'precipitation_deposits': 0, 'wind_intensity': 50, 'fog_density': 15, 'fog_distance': 80, 'wetness': 30,
                 'name': 'sunset_cloudy'
             },
-            {
-                'sun_altitude_angle': 70, 'cloudiness': 80, 'precipitation': 0, 'sun_azimuth_angle': 270,
-                'precipitation_deposits': 0, 'wind_intensity': 40, 'fog_density': 12, 'fog_distance': 100, 'wetness': 25,
-                'name': 'overcast'
-            },
+            # {
+            #     'sun_altitude_angle': 70, 'cloudiness': 80, 'precipitation': 0, 'sun_azimuth_angle': 270,
+            #     'precipitation_deposits': 0, 'wind_intensity': 40, 'fog_density': 12, 'fog_distance': 100, 'wetness': 25,
+            #     'name': 'overcast'
+            # },
             {
                 'sun_altitude_angle': 85, 'cloudiness': 10, 'precipitation': 0, 'sun_azimuth_angle': 180,
                 'precipitation_deposits': 0, 'wind_intensity': 5, 'fog_density': 0, 'fog_distance': 200, 'wetness': 0,
                 'name': 'bright_sun'
             },
-            # New weather scenarios
-            {
-                'sun_altitude_angle': 60, 'cloudiness': 95, 'precipitation': 0, 'sun_azimuth_angle': 90,
-                'precipitation_deposits': 0, 'wind_intensity': 20, 'fog_density': 80, 'fog_distance': 20, 'wetness': 40,
-                'name': 'heavy_fog'
-            },
-            {
-                'sun_altitude_angle': 35, 'cloudiness': 70, 'precipitation': 5, 'sun_azimuth_angle': 120,
-                'precipitation_deposits': 10, 'wind_intensity': 15, 'fog_density': 50, 'fog_distance': 40, 'wetness': 35,
-                'name': 'misty_morning'
-            },
+            # {
+            #     'sun_altitude_angle': 60, 'cloudiness': 95, 'precipitation': 0, 'sun_azimuth_angle': 90,
+            #     'precipitation_deposits': 0, 'wind_intensity': 20, 'fog_density': 80, 'fog_distance': 20, 'wetness': 40,
+            #     'name': 'heavy_fog'
+            # },
+            # {
+            #     'sun_altitude_angle': 35, 'cloudiness': 70, 'precipitation': 5, 'sun_azimuth_angle': 120,
+            #     'precipitation_deposits': 10, 'wind_intensity': 15, 'fog_density': 50, 'fog_distance': 40, 'wetness': 35,
+            #     'name': 'misty_morning'
+            # },
             {
                 'sun_altitude_angle': 25, 'cloudiness': 100, 'precipitation': 80, 'sun_azimuth_angle': 200,
                 'precipitation_deposits': 90, 'wind_intensity': 95, 'fog_density': 30, 'fog_distance': 30, 'wetness': 95,
@@ -117,13 +116,34 @@ class CarlaRelightSimulator:
                 'name': 'wet_roads_after_rain'
             },
             {
-                'sun_altitude_angle': 20, 'cloudiness': 30, 'precipitation': 0, 'sun_azimuth_angle': 250,
+                'sun_altitude_angle': -20, 'cloudiness': 30, 'precipitation': 0, 'sun_azimuth_angle': 250,
                 'precipitation_deposits': 0, 'wind_intensity': 80, 'fog_density': 3, 'fog_distance': 180, 'wetness': 15,
                 'name': 'windy_evening'
+            },
+            {
+                'sun_altitude_angle': -10, 'cloudiness': 10, 'precipitation': 0, 'sun_azimuth_angle': 0,
+                'precipitation_deposits': 0, 'wind_intensity': 15, 'fog_density': 0, 'fog_distance': 200, 'wetness': 0,
+                'name': 'clear_night'
+            },
+            {
+                'sun_altitude_angle': -15, 'cloudiness': 70, 'precipitation': 0, 'sun_azimuth_angle': 45,
+                'precipitation_deposits': 0, 'wind_intensity': 35, 'fog_density': 20, 'fog_distance': 80, 'wetness': 10,
+                'name': 'cloudy_night'
+            },
+            {
+                'sun_altitude_angle': -20, 'cloudiness': 90, 'precipitation': 40, 'sun_azimuth_angle': 90,
+                'precipitation_deposits': 60, 'wind_intensity': 70, 'fog_density': 35, 'fog_distance': 50, 'wetness': 75,
+                'name': 'rainy_night'
+            },
+            {
+                'sun_altitude_angle': -25, 'cloudiness': 80, 'precipitation': 0, 'sun_azimuth_angle': 135,
+                'precipitation_deposits': 0, 'wind_intensity': 25, 'fog_density': 60, 'fog_distance': 30, 'wetness': 20,
+                'name': 'foggy_night'
             }
         ]
 
         self.available_maps = [
+            'Town10HD', # High detail map
             'Town01',
             'Town02', 
             'Town03',
@@ -131,7 +151,6 @@ class CarlaRelightSimulator:
             'Town05',
             'Town06',
             'Town07',
-            'Town10HD'  # High detail map
         ]
 
         
@@ -151,7 +170,7 @@ class CarlaRelightSimulator:
             vehicle_transform.location, 
             vehicle_transform.rotation
         )
-        spectator_transform.location += vehicle_transform.get_forward_vector() * 3
+        spectator_transform.location += vehicle_transform.get_forward_vector() * 5
         spectator_transform.location.z += 2
         # spectator_transform.rotation.yaw += config['yaw_offset']
 
@@ -321,7 +340,7 @@ class CarlaRelightSimulator:
         print(f"Trajectory recording completed: {len(self.trajectory_data)} frames recorded")
         return len(self.trajectory_data) > 0
 
-    def replay_scene_trajectory(self, lighting_config, images_per_scene=5):
+    def replay_scene_trajectory(self, lighting_config, images_per_scene=5, map_name=""):
         """Replay recorded trajectory with specific lighting conditions"""
         if not self.trajectory_data:
             print("No trajectory data available for replay!")
@@ -348,7 +367,7 @@ class CarlaRelightSimulator:
             # Ensure we don't exceed available frames
             capture_frames = [min(f, total_frames - 1) for f in capture_frames]
         
-        print(f"  Will capture images at frames: {capture_frames}")
+        print(f"  Will capture images at frames: {capture_frames[:10]}... (total {len(capture_frames)})")
         
         # Disable autopilot for precise positioning
         self.vehicle.set_autopilot(False)
@@ -400,7 +419,7 @@ class CarlaRelightSimulator:
                 # Capture image if this is a designated capture frame
                 if frame_idx in capture_frames:
                     image_idx = capture_frames.index(frame_idx)
-                    success = self.capture_single_image(lighting_config['name'], f"replay_scene_{self.scene_idx}", image_idx)
+                    success = self.capture_single_image(lighting_config['name'], f"replay_scene_{self.scene_idx}", image_idx, map_name)
                     if success:
                         captured_count += 1
                         pbar.set_postfix({'Captured': f'{captured_count}/{len(capture_frames)}'})
@@ -770,63 +789,101 @@ class CarlaRelightSimulator:
         print("All actors cleaned up")
 
     def run_simulation(self, num_scenes=50, images_per_lighting=10):
-        """Run simulation with completely random scenes"""
+        """Run simulation across all available maps with dynamic scene counts"""
         self.connect_to_carla()
-        self.reset_world()
         
-        # Main progress bar for all scenes
-        with tqdm(total=num_scenes, desc="Generating scenes", unit="scene") as scene_pbar:
-            for scene_idx in range(num_scenes):
-                self.scene_idx = scene_idx
-                scene_pbar.set_description(f"Scene {scene_idx+1:02d}/{num_scenes}")
+        # Main progress bar for all maps
+        total_maps = len(self.available_maps)
+        with tqdm(total=total_maps, desc="Processing maps", unit="map") as map_pbar:
+            for map_idx, map_name in enumerate(self.available_maps):
+                map_pbar.set_description(f"Map: {map_name}")
                 
-                # Use simple random spawn point selection
-                spawn_point = self.get_spawn_point_by_strategy('random')
-                
-                # Cleanup previous actors
-                self.cleanup_actors()
-                
-                # Spawn new vehicle and camera
-                if not self.spawn_vehicle(spawn_point):
-                    print(f"Failed to spawn vehicle for scene {scene_idx:02d}, skipping...")
-                    scene_pbar.update(1)
-                    continue
-                    
-                # Spawn NPC vehicles for dynamic scene
-                npc_count = self.spawn_npc_vehicles(num_npcs=random.randint(10, 20))
-                    
-                if not self.setup_camera():
-                    print(f"Failed to setup camera for scene {scene_idx:02d}, skipping...")
-                    scene_pbar.update(1)
+                # Load the current map
+                print(f"\n🗺️  Loading map: {map_name}")
+                try:
+                    self.world = self.client.load_world(map_name)
+                    # Set synchronous mode after loading new world
+                    self.set_synchronous_mode(synchronous=True, fixed_delta_seconds=0.05)
+                    print(f"Successfully loaded map: {map_name}")
+                except Exception as e:
+                    print(f"Failed to load map {map_name}: {e}")
+                    map_pbar.update(1)
                     continue
                 
-                # Additional stabilization after spawning all actors
-                print("Stabilizing scene with all actors...")
-                for _ in range(20):
-                    self.world.tick()
-                
-                # Capture scene data with simple naming
-                success = self.capture_scene_data(f"{scene_idx+1:02d}", images_per_lighting)
-                
-                # Update progress bar with scene info
-                scene_pbar.set_postfix({
-                    'NPCs': npc_count,
-                    'Status': '✓' if success else '✗'
-                })
-                scene_pbar.update(1)
-                
-                if success:
-                    print(f"Scene {scene_idx+1:02d} completed with {len(self.lighting_configs)} weather conditions")
+                # Set number of scenes based on map type
+                if map_name == 'Town10HD':
+                    current_num_scenes = 35
+                    print(f"Using {current_num_scenes} scenes for high-detail map {map_name}")
                 else:
-                    print(f"Scene {scene_idx+1:02d} failed or incomplete")
-                    
+                    current_num_scenes = 5
+                    print(f"Using {current_num_scenes} scenes for map {map_name}")
+                
+                # Reset world for new map
+                self.reset_world()
+                
+                # Scene progress bar for current map
+                with tqdm(total=current_num_scenes, desc=f"Scenes in {map_name}", unit="scene", leave=False) as scene_pbar:
+                    for scene_idx in range(current_num_scenes):
+                        self.scene_idx = scene_idx
+                        scene_pbar.set_description(f"Scene {scene_idx+1:02d}/{current_num_scenes}")
+                        
+                        # Use simple random spawn point selection
+                        spawn_point = self.get_spawn_point_by_strategy('random')
+                        
+                        # Cleanup previous actors
+                        self.cleanup_actors()
+                        
+                        # Spawn new vehicle and camera
+                        if not self.spawn_vehicle(spawn_point):
+                            print(f"Failed to spawn vehicle for scene {scene_idx:02d} in {map_name}, skipping...")
+                            scene_pbar.update(1)
+                            continue
+                            
+                        # Spawn NPC vehicles for dynamic scene
+                        npc_count = self.spawn_npc_vehicles(num_npcs=random.randint(10, 20))
+                            
+                        if not self.setup_camera():
+                            print(f"Failed to setup camera for scene {scene_idx:02d} in {map_name}, skipping...")
+                            scene_pbar.update(1)
+                            continue
+                        
+                        # Additional stabilization after spawning all actors
+                        print("Stabilizing scene with all actors...")
+                        for _ in range(20):
+                            self.world.tick()
+                        
+                        # Capture scene data with map-aware file structure
+                        success = self.capture_scene_data(f"{scene_idx+1:02d}", images_per_lighting, map_name)
+                        
+                        # Update progress bar with scene info
+                        scene_pbar.set_postfix({
+                            'NPCs': npc_count,
+                            'Status': '✓' if success else '✗'
+                        })
+                        scene_pbar.update(1)
+                        
+                        if success:
+                            print(f"Scene {scene_idx+1:02d} in {map_name} completed with {len(self.lighting_configs)} weather conditions")
+                        else:
+                            print(f"Scene {scene_idx+1:02d} in {map_name} failed or incomplete")
+                
+                # Update map progress bar
+                map_pbar.set_postfix({
+                    'Scenes': current_num_scenes,
+                    'Map': map_name
+                })
+                map_pbar.update(1)
+                print(f"✅ Completed map {map_name} with {current_num_scenes} scenes")
+                
         self.cleanup_actors()
-        print(f"\n🎉 Dataset generation completed! {num_scenes} scenes processed.")
+        total_scenes_processed = sum(35 if map_name == 'Town10HD' else 5 for map_name in self.available_maps)
+        print(f"\n🎉 Dataset generation completed! {total_maps} maps processed with {total_scenes_processed} total scenes.")
+        print(f"📁 Images saved in structure: {self.output_dir}/{{map_name}}/{{scene_num}}/{{weather}}/")
 
-    def save_image(self, image, lighting_name, scene_name, image_idx):
-        """保存图像回调函数"""
-        # 创建目录结构：scene_xxx/lighting_name/
-        scene_dir = os.path.join(self.output_dir, f"scene_{self.scene_idx:03d}_{scene_name}")
+    def save_image(self, image, lighting_name, scene_name, image_idx, map_name):
+        """保存图像回调函数 - 新的文件夹结构：{map_name}/{scene_num}/{weather}/"""
+        # 创建目录结构：{map_name}/{scene_num}/{weather}/
+        scene_dir = os.path.join(self.output_dir, map_name, f"scene_{self.scene_idx:03d}")
         lighting_dir = os.path.join(scene_dir, lighting_name)
         os.makedirs(lighting_dir, exist_ok=True)
         
@@ -834,9 +891,8 @@ class CarlaRelightSimulator:
         filename = f"{image_idx:06d}.png"
         filepath = os.path.join(lighting_dir, filename)
         image.save_to_disk(filepath)
-        # print(f"保存图像: {filepath}")
-        
-    def capture_single_image(self, lighting_name, scene_name, image_idx):
+
+    def capture_single_image(self, lighting_name, scene_name, image_idx, map_name):
         """Capture a single image with improved synchronization"""
         image_captured = False
         captured_image = None
@@ -861,7 +917,7 @@ class CarlaRelightSimulator:
         self.camera_rgb.stop()
         
         if image_captured and captured_image:
-            self.save_image(captured_image, lighting_name, scene_name, image_idx)
+            self.save_image(captured_image, lighting_name, scene_name, image_idx, map_name)
             return True
         else:
             print(f"    ✗ Failed to capture image after {max_attempts} attempts")
@@ -979,7 +1035,7 @@ class CarlaRelightSimulator:
         print(f"RGB camera created: {self.camera_rgb.type_id}")
         return True
 
-    def capture_scene_data(self, scene_strategy, num_images_per_lighting=10):
+    def capture_scene_data(self, scene_strategy, num_images_per_lighting=10, map_name=""):
         """Capture scene data using trajectory recording and replay for consistency"""
         print(f"\nStarting scene {self.scene_idx}: {scene_strategy}")
         
@@ -1012,14 +1068,20 @@ class CarlaRelightSimulator:
         
         print("Step 2: Replaying scene under different lighting conditions...")
         
-        # Now replay the same trajectory under different lighting conditions with progress bar
-        total_images_expected = len(self.lighting_configs) * num_images_per_lighting
-        with tqdm(total=len(self.lighting_configs), desc="Lighting conditions", unit="condition") as lighting_pbar:
-            for i, lighting_config in enumerate(self.lighting_configs):
+        # Select 10 random lighting configurations from all 14 available
+        selected_lighting_configs = random.sample(self.lighting_configs, min(10, len(self.lighting_configs)))
+        print(f"Selected {len(selected_lighting_configs)} lighting conditions from {len(self.lighting_configs)} available:")
+        for config in selected_lighting_configs:
+            print(f"  - {config['name']}")
+        
+        # Now replay the same trajectory under selected lighting conditions with progress bar
+        total_images_expected = len(selected_lighting_configs) * num_images_per_lighting
+        # breakpoint()
+        with tqdm(total=len(selected_lighting_configs), desc="Lighting conditions", unit="condition") as lighting_pbar:
+            for i, lighting_config in enumerate(selected_lighting_configs):
                 lighting_pbar.set_description(f"Lighting: {lighting_config['name'][:15]}")
                 
-                # success = self.replay_scene_trajectory(lighting_config, num_images_per_lighting)
-                success= False
+                success = self.replay_scene_trajectory(lighting_config, num_images_per_lighting, map_name)
                 lighting_pbar.set_postfix({
                     'Status': '✓' if success else '✗',
                     'Images': f"{num_images_per_lighting}/light"
@@ -1029,17 +1091,15 @@ class CarlaRelightSimulator:
                 if not success:
                     print(f"    Failed to replay scene with {lighting_config['name']}")
         
-        print(f"Scene {i} completed with consistent trajectory replay")
+        print(f"Scene {self.scene_idx} completed with consistent trajectory replay")
         print(f"Expected total images: {total_images_expected}")
         return True
 
     def connect_to_carla(self):
         """Connect to CARLA server and configure world"""
         self.world = self.client.get_world()
-        # breakpoint()
-        self.world = self.client.load_world('Town07')  
         print(f"Connected to CARLA server, current map: {self.world.get_map().name}")
-        
+        # breakpoint()
         # Set synchronous mode with recommended settings for data collection
         self.set_synchronous_mode(synchronous=True, fixed_delta_seconds=0.05)
         
@@ -1103,7 +1163,7 @@ def main():
     parser.add_argument('--host', default='127.0.0.1', help='CARLA server address')
     parser.add_argument('--port', type=int, default=2000, help='CARLA server port')
     parser.add_argument('--output-dir', default='./carla_relight_data', help='Output directory')
-    parser.add_argument('--num-scenes', type=int, default=50, help='Number of scenes to collect')
+    parser.add_argument('--num-scenes', type=int, default=20, help='Number of scenes to collect')
     parser.add_argument('--images-per-lighting', type=int, default=30, help='Images per lighting condition')
     
     args = parser.parse_args()
