@@ -170,7 +170,11 @@ class CarlaRelightSimulator:
             vehicle_transform.location, 
             vehicle_transform.rotation
         )
-        spectator_transform.location += vehicle_transform.get_forward_vector() * 5
+        vehicle_bbox = self.vehicle.bounding_box
+        vehicle_length = vehicle_bbox.extent.x 
+        camera_x = vehicle_transform.get_forward_vector() * vehicle_length
+
+        spectator_transform.location += camera_x 
         spectator_transform.location.z += 2
         # spectator_transform.rotation.yaw += config['yaw_offset']
 
@@ -1018,10 +1022,12 @@ class CarlaRelightSimulator:
         camera_bp.set_attribute('enable_postprocess_effects', 'true')
         camera_bp.set_attribute('gamma', '2.2')
         
-        
+        vehicle_bbox = self.vehicle.bounding_box
+        vehicle_length = vehicle_bbox.extent.x # * 2 
+        camera_x = vehicle_length + 1.0
         # Set camera position (attached to vehicle) - similar to tutorial but for RGB
         camera_transform = carla.Transform(
-            carla.Location(x=1.5, z=2.4),
+            carla.Location(x=camera_x, z=2.4),
             carla.Rotation(pitch=0.0)
         )
         
