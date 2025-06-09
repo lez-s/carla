@@ -133,36 +133,10 @@ class CarlaRelightSimulator:
             'Town07',
             'Town10HD'  # High detail map
         ]
+
         
-        # Enhanced scene strategies using CARLA Map API
-        self.scene_strategies = [
-            'random',
-            'junction_center', 
-            'junction_nearby',
-            'highway_entrance',
-            'urban_intersection',
-            'roadside_parking',
-            'bridge_locations',
-            'tunnel_entrance',
-            'landmark_vicinity',
-            'curved_roads',
-            'straight_highways'
-        ]
-        
-        # Advanced spawn point filters with map-based criteria
-        self.spawn_point_filters = {
-            'random': {'type': 'random'},
-            'junction_center': {'type': 'junction', 'position': 'center'},
-            'junction_nearby': {'type': 'junction', 'distance': 30.0},
-            'highway_entrance': {'type': 'lane_type', 'lane_types': [carla.LaneType.Driving], 'min_speed': 50},
-            'urban_intersection': {'type': 'complex_junction', 'min_connections': 3},
-            'roadside_parking': {'type': 'lane_type', 'lane_types': [carla.LaneType.Parking]},
-            'bridge_locations': {'type': 'elevation', 'min_height': 5.0},
-            'tunnel_entrance': {'type': 'elevation', 'max_height': -2.0},
-            'landmark_vicinity': {'type': 'landmarks', 'distance': 20.0},
-            'curved_roads': {'type': 'curvature', 'min_curvature': 0.1},
-            'straight_highways': {'type': 'curvature', 'max_curvature': 0.05, 'min_speed': 60}
-        }
+        # Simplified random scene generation - no complex strategies needed
+        self.num_scenes_to_generate = 10  # Can easily generate 50+ scenes
     def setup_spectator(self, mode='behind_vehicle'):
         """Setup spectator view based on vehicle position"""
         # if not self.vehicle or not self.vehicle.is_alive:
@@ -177,7 +151,7 @@ class CarlaRelightSimulator:
             vehicle_transform.location, 
             vehicle_transform.rotation
         )
-        spectator_transform.location += vehicle_transform.get_forward_vector() * 5
+        spectator_transform.location += vehicle_transform.get_forward_vector() * 3
         spectator_transform.location.z += 2
         # spectator_transform.rotation.yaw += config['yaw_offset']
 
@@ -230,6 +204,7 @@ class CarlaRelightSimulator:
         
         print(f"World reset completed - destroyed {destroyed_count} vehicles and {len(sensors)} sensors")
         return True
+    
 
     def set_synchronous_mode(self, synchronous=True, fixed_delta_seconds=0.05):
         """Set synchronous mode according to CARLA best practices"""
@@ -692,90 +667,6 @@ class CarlaRelightSimulator:
             self.vehicle.set_autopilot(True)
             self.agent = None
 
-    def _record_scene_trajectory(self, duration_seconds=75):
-        """Record trajectory with improved vehicle control"""
-        print(f"Recording scene trajectory for {duration_seconds} seconds...")
-        
-        self.trajectory_data = []
-        self.npc_trajectory_data = []
-        
-        # Setup intelligent agent for main vehicle
-        agent_success = self.setup_intelligent_agent(self.agent_type)
-        
-        # Setup NPC vehicles with varied behaviors
-        self.setup_npc_agents()
-        
-        # Calculate number of frames to record
-        if self.world.get_settings().synchronous_mode:
-            frames_to_record = int(duration_seconds / 0.05)  # 0.05s per tick
-        else:
-            frames_to_record = int(duration_seconds * 20)  # Approximate 20 FPS
-        
-        start_time = time.time()
-        
-        # Add progress bar for trajectory recording
-        with tqdm(total=frames_to_record, desc="Recording trajectory", unit="frames") as pbar:
-            for frame_idx in range(frames_to_record):
-                # Update vehicle control using agent
-                if agent_success and self.agent:
-                    self.update_agent_control()
-                
-                # Update NPC control
-                self.update_npc_control()
-                
-                # Record main vehicle transform
-                vehicle_transform = self.vehicle.get_transform()
-                vehicle_velocity = self.vehicle.get_velocity()
-                
-                frame_data = {
-                    'frame': frame_idx,
-                    'vehicle_transform': {
-                        'location': [vehicle_transform.location.x, vehicle_transform.location.y, vehicle_transform.location.z],
-                        'rotation': [vehicle_transform.rotation.pitch, vehicle_transform.rotation.yaw, vehicle_transform.rotation.roll]
-                    },
-                    'vehicle_velocity': [vehicle_velocity.x, vehicle_velocity.y, vehicle_velocity.z]
-                }
-                
-                # Record NPC transforms
-                npc_transforms = []
-                for i, npc in enumerate(self.npc_vehicles):
-                    if npc.is_alive:
-                        npc_transform = npc.get_transform()
-                        npc_velocity = npc.get_velocity()
-                        npc_data = {
-                            'npc_id': i,
-                            'transform': {
-                                'location': [npc_transform.location.x, npc_transform.location.y, npc_transform.location.z],
-                                'rotation': [npc_transform.rotation.pitch, npc_transform.rotation.yaw, npc_transform.rotation.roll]
-                            },
-                            'velocity': [npc_velocity.x, npc_velocity.y, npc_velocity.z]
-                        }
-                        npc_transforms.append(npc_data)
-                
-                frame_data['npc_transforms'] = npc_transforms
-                self.trajectory_data.append(frame_data)
-                
-                # Update progress bar
-                pbar.update(1)
-                if frame_idx % 50 == 0:  # Update description every 50 frames
-                    elapsed = time.time() - start_time
-                    fps = (frame_idx + 1) / elapsed if elapsed > 0 else 0
-                    vehicle_speed = np.sqrt(vehicle_velocity.x**2 + vehicle_velocity.y**2 + vehicle_velocity.z**2) * 3.6
-                    pbar.set_postfix({
-                        'FPS': f'{fps:.1f}', 
-                        'NPCs': len(npc_transforms),
-                        'Speed': f'{vehicle_speed:.1f}km/h'
-                    })
-                
-                # Advance simulation
-                if self.world.get_settings().synchronous_mode:
-                    self.world.tick()
-                else:
-                    time.sleep(0.05)
-        
-        print(f"Trajectory recording completed: {len(self.trajectory_data)} frames recorded")
-        return len(self.trajectory_data) > 0
-
     def setup_npc_agents(self):
         """Setup intelligent control for NPC vehicles to prevent static blocking"""
         if not AGENTS_AVAILABLE:
@@ -878,30 +769,26 @@ class CarlaRelightSimulator:
             
         print("All actors cleaned up")
 
-    def run_simulation(self, num_scenes=10, images_per_lighting=10):
-        """Run simulation with moving vehicles for dynamic relight dataset"""
+    def run_simulation(self, num_scenes=50, images_per_lighting=10):
+        """Run simulation with completely random scenes"""
         self.connect_to_carla()
-
         self.reset_world()
         
         # Main progress bar for all scenes
         with tqdm(total=num_scenes, desc="Generating scenes", unit="scene") as scene_pbar:
             for scene_idx in range(num_scenes):
                 self.scene_idx = scene_idx
-                scene_pbar.set_description(f"Scene {scene_idx+1}/{num_scenes}")
+                scene_pbar.set_description(f"Scene {scene_idx+1:02d}/{num_scenes}")
                 
-                # Select scene strategy
-                strategy = random.choice(self.scene_strategies)
-                
-                # Get spawn point
-                spawn_point = self.get_spawn_point_by_strategy(strategy)
+                # Use simple random spawn point selection
+                spawn_point = self.get_spawn_point_by_strategy('random')
                 
                 # Cleanup previous actors
                 self.cleanup_actors()
                 
                 # Spawn new vehicle and camera
                 if not self.spawn_vehicle(spawn_point):
-                    print(f"Failed to spawn vehicle for scene {scene_idx}, skipping...")
+                    print(f"Failed to spawn vehicle for scene {scene_idx:02d}, skipping...")
                     scene_pbar.update(1)
                     continue
                     
@@ -909,7 +796,7 @@ class CarlaRelightSimulator:
                 npc_count = self.spawn_npc_vehicles(num_npcs=random.randint(10, 20))
                     
                 if not self.setup_camera():
-                    print(f"Failed to setup camera for scene {scene_idx}, skipping...")
+                    print(f"Failed to setup camera for scene {scene_idx:02d}, skipping...")
                     scene_pbar.update(1)
                     continue
                 
@@ -918,21 +805,20 @@ class CarlaRelightSimulator:
                 for _ in range(20):
                     self.world.tick()
                 
-                # Capture scene data with moving vehicles
-                success = self.capture_scene_data(strategy, images_per_lighting)
+                # Capture scene data with simple naming
+                success = self.capture_scene_data(f"{scene_idx+1:02d}", images_per_lighting)
                 
                 # Update progress bar with scene info
                 scene_pbar.set_postfix({
-                    'Strategy': strategy[:10], 
                     'NPCs': npc_count,
                     'Status': '✓' if success else '✗'
                 })
                 scene_pbar.update(1)
                 
                 if success:
-                    print(f"Scene {scene_idx} completed with {len(self.lighting_configs)} weather conditions")
+                    print(f"Scene {scene_idx+1:02d} completed with {len(self.lighting_configs)} weather conditions")
                 else:
-                    print(f"Scene {scene_idx} failed or incomplete")
+                    print(f"Scene {scene_idx+1:02d} failed or incomplete")
                     
         self.cleanup_actors()
         print(f"\n🎉 Dataset generation completed! {num_scenes} scenes processed.")
@@ -1071,6 +957,11 @@ class CarlaRelightSimulator:
         camera_bp.set_attribute('image_size_x', '800')
         camera_bp.set_attribute('image_size_y', '600')
         camera_bp.set_attribute('fov', '90')
+
+        # Enable high quality rendering
+        camera_bp.set_attribute('enable_postprocess_effects', 'true')
+        camera_bp.set_attribute('gamma', '2.2')
+        
         
         # Set camera position (attached to vehicle) - similar to tutorial but for RGB
         camera_transform = carla.Transform(
@@ -1127,8 +1018,8 @@ class CarlaRelightSimulator:
             for i, lighting_config in enumerate(self.lighting_configs):
                 lighting_pbar.set_description(f"Lighting: {lighting_config['name'][:15]}")
                 
-                success = self.replay_scene_trajectory(lighting_config, num_images_per_lighting)
-                
+                # success = self.replay_scene_trajectory(lighting_config, num_images_per_lighting)
+                success= False
                 lighting_pbar.set_postfix({
                     'Status': '✓' if success else '✗',
                     'Images': f"{num_images_per_lighting}/light"
@@ -1138,7 +1029,7 @@ class CarlaRelightSimulator:
                 if not success:
                     print(f"    Failed to replay scene with {lighting_config['name']}")
         
-        print(f"Scene {self.scene_idx} completed with consistent trajectory replay")
+        print(f"Scene {i} completed with consistent trajectory replay")
         print(f"Expected total images: {total_images_expected}")
         return True
 
@@ -1146,6 +1037,7 @@ class CarlaRelightSimulator:
         """Connect to CARLA server and configure world"""
         self.world = self.client.get_world()
         # breakpoint()
+        self.world = self.client.load_world('Town07')  
         print(f"Connected to CARLA server, current map: {self.world.get_map().name}")
         
         # Set synchronous mode with recommended settings for data collection
@@ -1202,207 +1094,16 @@ class CarlaRelightSimulator:
                 print(f"  ✗ Failed to apply {config['name']}")
 
     def get_spawn_point_by_strategy(self, strategy):
-        """Enhanced spawn point selection using Map API"""
+        """Simplified random spawn point selection"""
         spawn_points = self.world.get_map().get_spawn_points()
-        map_obj = self.world.get_map()
-        
-        if strategy == 'random':
-            return random.choice(spawn_points)
-            
-        elif strategy == 'junction_center':
-            return self._get_junction_center_spawn(spawn_points, map_obj)
-            
-        elif strategy == 'junction_nearby':
-            return self._get_junction_nearby_spawn(spawn_points, map_obj, 30.0)
-            
-        elif strategy == 'highway_entrance':
-            return self._get_highway_spawn(spawn_points, map_obj)
-            
-        elif strategy == 'urban_intersection':
-            return self._get_complex_intersection_spawn(spawn_points, map_obj)
-            
-        elif strategy == 'roadside_parking':
-            return self._get_parking_spawn(spawn_points, map_obj)
-            
-        elif strategy == 'bridge_locations':
-            return self._get_elevated_spawn(spawn_points, map_obj, min_height=5.0)
-            
-        elif strategy == 'tunnel_entrance':
-            return self._get_elevated_spawn(spawn_points, map_obj, max_height=-2.0)
-            
-        elif strategy == 'landmark_vicinity':
-            return self._get_landmark_spawn(spawn_points, map_obj)
-            
-        elif strategy == 'curved_roads':
-            return self._get_curved_road_spawn(spawn_points, map_obj)
-            
-        elif strategy == 'straight_highways':
-            return self._get_straight_highway_spawn(spawn_points, map_obj)
-            
-        else:
-            print(f"Unknown strategy {strategy}, using random")
-            return random.choice(spawn_points)
-
-    def _get_junction_center_spawn(self, spawn_points, map_obj):
-        """Get spawn points at junction centers"""
-        junction_spawns = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint and waypoint.is_junction:
-                junction_spawns.append(spawn_point)
-        
-        return random.choice(junction_spawns) if junction_spawns else random.choice(spawn_points)
-
-    def _get_junction_nearby_spawn(self, spawn_points, map_obj, distance):
-        """Get spawn points near junctions"""
-        junction_nearby = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint:
-                # Check if junction is within distance
-                next_waypoints = waypoint.next(distance)
-                prev_waypoints = waypoint.previous(distance)
-                
-                for wp in next_waypoints + prev_waypoints:
-                    if wp.is_junction:
-                        junction_nearby.append(spawn_point)
-                        break
-        
-        return random.choice(junction_nearby) if junction_nearby else random.choice(spawn_points)
-
-    def _get_highway_spawn(self, spawn_points, map_obj):
-        """Get spawn points on highway-like roads"""
-        highway_spawns = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint and waypoint.lane_type == carla.LaneType.Driving:
-                # Check if road has multiple lanes (highway characteristic)
-                left_lane = waypoint.get_left_lane()
-                right_lane = waypoint.get_right_lane()
-                
-                if left_lane or right_lane:  # Multi-lane road
-                    highway_spawns.append(spawn_point)
-        
-        return random.choice(highway_spawns) if highway_spawns else random.choice(spawn_points)
-
-    def _get_complex_intersection_spawn(self, spawn_points, map_obj):
-        """Get spawn points at complex intersections with multiple connections"""
-        complex_intersections = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint and waypoint.is_junction:
-                # Count connections by checking next waypoints
-                connections = len(waypoint.next(5.0))
-                if connections >= 3:  # Complex intersection
-                    complex_intersections.append(spawn_point)
-        
-        return random.choice(complex_intersections) if complex_intersections else random.choice(spawn_points)
-
-    def _get_parking_spawn(self, spawn_points, map_obj):
-        """Get spawn points near parking areas"""
-        parking_spawns = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint:
-                # Check nearby waypoints for parking lanes
-                nearby_waypoints = waypoint.next(10.0) + waypoint.previous(10.0)
-                for wp in nearby_waypoints:
-                    if wp.lane_type == carla.LaneType.Parking:
-                        parking_spawns.append(spawn_point)
-                        break
-        
-        return random.choice(parking_spawns) if parking_spawns else random.choice(spawn_points)
-
-    def _get_elevated_spawn(self, spawn_points, map_obj, min_height=None, max_height=None):
-        """Get spawn points at specific elevations (bridges/tunnels)"""
-        elevated_spawns = []
-        
-        for spawn_point in spawn_points:
-            height = spawn_point.location.z
-            
-            if min_height and height >= min_height:
-                elevated_spawns.append(spawn_point)
-            elif max_height and height <= max_height:
-                elevated_spawns.append(spawn_point)
-        
-        return random.choice(elevated_spawns) if elevated_spawns else random.choice(spawn_points)
-
-    def _get_landmark_spawn(self, spawn_points, map_obj):
-        """Get spawn points near traffic landmarks"""
-        landmark_spawns = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint:
-                # Check for landmarks within 20 meters
-                landmarks = waypoint.get_landmarks(20.0, False)
-                if landmarks:
-                    landmark_spawns.append(spawn_point)
-        
-        return random.choice(landmark_spawns) if landmark_spawns else random.choice(spawn_points)
-
-    def _get_curved_road_spawn(self, spawn_points, map_obj):
-        """Get spawn points on curved roads"""
-        curved_spawns = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint:
-                # Check curvature by comparing direction vectors
-                next_wp = waypoint.next(10.0)
-                if next_wp:
-                    current_dir = waypoint.transform.get_forward_vector()
-                    next_dir = next_wp[0].transform.get_forward_vector()
-                    
-                    # Calculate angle difference to determine curvature
-                    dot_product = current_dir.x * next_dir.x + current_dir.y * next_dir.y
-                    if dot_product < 0.9:  # Significant direction change
-                        curved_spawns.append(spawn_point)
-        
-        return random.choice(curved_spawns) if curved_spawns else random.choice(spawn_points)
-
-    def _get_straight_highway_spawn(self, spawn_points, map_obj):
-        """Get spawn points on straight highway sections"""
-        straight_spawns = []
-        
-        for spawn_point in spawn_points:
-            waypoint = map_obj.get_waypoint(spawn_point.location)
-            if waypoint and waypoint.lane_type == carla.LaneType.Driving:
-                # Check if road is straight by sampling multiple points
-                is_straight = True
-                current_wp = waypoint
-                
-                for _ in range(5):  # Check 5 points ahead
-                    next_wps = current_wp.next(20.0)
-                    if not next_wps:
-                        break
-                    
-                    current_dir = current_wp.transform.get_forward_vector()
-                    next_dir = next_wps[0].transform.get_forward_vector()
-                    
-                    dot_product = current_dir.x * next_dir.x + current_dir.y * next_dir.y
-                    if dot_product < 0.95:  # Not straight enough
-                        is_straight = False
-                        break
-                    
-                    current_wp = next_wps[0]
-                
-                if is_straight:
-                    straight_spawns.append(spawn_point)
-        
-        return random.choice(straight_spawns) if straight_spawns else random.choice(spawn_points)
+        return random.choice(spawn_points)
 
 def main():
     parser = argparse.ArgumentParser(description='CARLA Relight Dataset Generation Tool')
     parser.add_argument('--host', default='127.0.0.1', help='CARLA server address')
     parser.add_argument('--port', type=int, default=2000, help='CARLA server port')
     parser.add_argument('--output-dir', default='./carla_relight_data', help='Output directory')
-    parser.add_argument('--num-scenes', type=int, default=10, help='Number of scenes to collect')
+    parser.add_argument('--num-scenes', type=int, default=50, help='Number of scenes to collect')
     parser.add_argument('--images-per-lighting', type=int, default=30, help='Images per lighting condition')
     
     args = parser.parse_args()
