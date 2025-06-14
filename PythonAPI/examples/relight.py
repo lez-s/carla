@@ -792,8 +792,64 @@ class CarlaRelightSimulator:
             
         print("All actors cleaned up")
 
+    def check_existing_scenes(self, map_name):
+        """Check how many scenes have already been generated for a specific map"""
+        map_dir = os.path.join(self.output_dir, map_name)
+        if not os.path.exists(map_dir):
+            return 0
+        
+        # Count existing scene directories
+        existing_scenes = []
+        for item in os.listdir(map_dir):
+            if os.path.isdir(os.path.join(map_dir, item)) and item.startswith('scene_'):
+                try:
+                    # Extract scene number from directory name (e.g., 'scene_003' -> 3)
+                    scene_num = int(item.split('_')[1])
+                    existing_scenes.append(scene_num)
+                except (IndexError, ValueError):
+                    continue
+        
+        if existing_scenes:
+            existing_scenes.sort()
+            print(f"Found existing scenes for {map_name}: {len(existing_scenes)} scenes")
+            print(f"  Existing scene numbers: {existing_scenes}")
+            return max(existing_scenes) + 1  # Return next scene number to generate
+        else:
+            return 0
+
+    def is_scene_complete(self, map_name, scene_idx):
+        """Check if a specific scene is complete by verifying it has images for all lighting conditions"""
+        scene_dir = os.path.join(self.output_dir, map_name, f"scene_{scene_idx:03d}")
+        if not os.path.exists(scene_dir):
+            return False
+        
+        # Check if scene has subdirectories for lighting conditions
+        lighting_dirs = []
+        for item in os.listdir(scene_dir):
+            item_path = os.path.join(scene_dir, item)
+            if os.path.isdir(item_path):
+                lighting_dirs.append(item)
+        
+        # A complete scene should have at least 5 lighting conditions (we select 10 random from 14)
+        # But let's be more specific - check if it has reasonable number of lighting conditions
+        min_expected_lighting_conditions = 8  # Conservative estimate
+        
+        if len(lighting_dirs) < min_expected_lighting_conditions:
+            print(f"Scene {scene_idx:03d} in {map_name} appears incomplete: only {len(lighting_dirs)} lighting conditions")
+            return False
+        
+        # Check if each lighting condition has a reasonable number of images
+        for lighting_dir in lighting_dirs:
+            lighting_path = os.path.join(scene_dir, lighting_dir)
+            images = [f for f in os.listdir(lighting_path) if f.endswith('.png')]
+            if len(images) < 5:  # At least 5 images per lighting condition
+                print(f"Scene {scene_idx:03d} in {map_name}, lighting {lighting_dir} appears incomplete: only {len(images)} images")
+                return False
+        
+        return True
+
     def run_simulation(self, num_scenes=50, images_per_lighting=10):
-        """Run simulation across all available maps with dynamic scene counts"""
+        """Run simulation across all available maps with dynamic scene counts and resume capability"""
         self.connect_to_carla()
         
         # Main progress bar for all maps
@@ -816,20 +872,41 @@ class CarlaRelightSimulator:
                 
                 # Set number of scenes based on map type
                 if map_name == 'Town10HD':
-                    current_num_scenes = 35
-                    print(f"Using {current_num_scenes} scenes for high-detail map {map_name}")
+                    total_scenes_for_map = 35
+                    print(f"Target: {total_scenes_for_map} scenes for high-detail map {map_name}")
                 else:
-                    current_num_scenes = 5
-                    print(f"Using {current_num_scenes} scenes for map {map_name}")
+                    total_scenes_for_map = 5
+                    print(f"Target: {total_scenes_for_map} scenes for map {map_name}")
+                
+                # Check existing scenes and resume from where we left off
+                start_scene_idx = self.check_existing_scenes(map_name)
+                
+                if start_scene_idx >= total_scenes_for_map:
+                    print(f"✅ Map {map_name} already completed ({start_scene_idx} scenes exist)")
+                    map_pbar.update(1)
+                    continue
+                elif start_scene_idx > 0:
+                    print(f"🔄 Resuming {map_name} from scene {start_scene_idx + 1} (found {start_scene_idx} existing scenes)")
+                
+                # Calculate remaining scenes to generate
+                remaining_scenes = total_scenes_for_map - start_scene_idx
+                print(f"Will generate {remaining_scenes} remaining scenes ({start_scene_idx} already exist)")
                 
                 # Reset world for new map
                 self.reset_world()
                 
                 # Scene progress bar for current map
-                with tqdm(total=current_num_scenes, desc=f"Scenes in {map_name}", unit="scene", leave=False) as scene_pbar:
-                    for scene_idx in range(current_num_scenes):
-                        self.scene_idx = scene_idx
-                        scene_pbar.set_description(f"Scene {scene_idx+1:02d}/{current_num_scenes}")
+                with tqdm(total=remaining_scenes, desc=f"Scenes in {map_name}", unit="scene", leave=False) as scene_pbar:
+                    for relative_idx in range(remaining_scenes):
+                        actual_scene_idx = start_scene_idx + relative_idx
+                        self.scene_idx = actual_scene_idx
+                        scene_pbar.set_description(f"Scene {actual_scene_idx+1:02d}/{total_scenes_for_map}")
+                        
+                        # Double-check if this specific scene is already complete
+                        if self.is_scene_complete(map_name, actual_scene_idx):
+                            print(f"Scene {actual_scene_idx:03d} in {map_name} already complete, skipping...")
+                            scene_pbar.update(1)
+                            continue
                         
                         # Use simple random spawn point selection
                         spawn_point = self.get_spawn_point_by_strategy('random')
@@ -839,7 +916,7 @@ class CarlaRelightSimulator:
                         
                         # Spawn new vehicle and camera
                         if not self.spawn_vehicle(spawn_point):
-                            print(f"Failed to spawn vehicle for scene {scene_idx:02d} in {map_name}, skipping...")
+                            print(f"Failed to spawn vehicle for scene {actual_scene_idx:02d} in {map_name}, skipping...")
                             scene_pbar.update(1)
                             continue
                             
@@ -847,7 +924,7 @@ class CarlaRelightSimulator:
                         npc_count = self.spawn_npc_vehicles(num_npcs=random.randint(10, 20))
                             
                         if not self.setup_camera():
-                            print(f"Failed to setup camera for scene {scene_idx:02d} in {map_name}, skipping...")
+                            print(f"Failed to setup camera for scene {actual_scene_idx:02d} in {map_name}, skipping...")
                             scene_pbar.update(1)
                             continue
                         
@@ -857,27 +934,29 @@ class CarlaRelightSimulator:
                             self.world.tick()
                         
                         # Capture scene data with map-aware file structure
-                        success = self.capture_scene_data(f"{scene_idx+1:02d}", images_per_lighting, map_name)
+                        success = self.capture_scene_data(f"{actual_scene_idx+1:02d}", images_per_lighting, map_name)
                         
                         # Update progress bar with scene info
                         scene_pbar.set_postfix({
                             'NPCs': npc_count,
-                            'Status': '✓' if success else '✗'
+                            'Status': '✓' if success else '✗',
+                            'Total': f'{actual_scene_idx+1}/{total_scenes_for_map}'
                         })
                         scene_pbar.update(1)
                         
                         if success:
-                            print(f"Scene {scene_idx+1:02d} in {map_name} completed with {len(self.lighting_configs)} weather conditions")
+                            print(f"Scene {actual_scene_idx+1:02d} in {map_name} completed with {len(self.lighting_configs)} weather conditions")
                         else:
-                            print(f"Scene {scene_idx+1:02d} in {map_name} failed or incomplete")
+                            print(f"Scene {actual_scene_idx+1:02d} in {map_name} failed or incomplete")
                 
                 # Update map progress bar
+                completed_scenes = start_scene_idx + remaining_scenes
                 map_pbar.set_postfix({
-                    'Scenes': current_num_scenes,
+                    'Scenes': f'{completed_scenes}/{total_scenes_for_map}',
                     'Map': map_name
                 })
                 map_pbar.update(1)
-                print(f"✅ Completed map {map_name} with {current_num_scenes} scenes")
+                print(f"✅ Completed map {map_name} with {completed_scenes} scenes")
                 
         self.cleanup_actors()
         total_scenes_processed = sum(35 if map_name == 'Town10HD' else 5 for map_name in self.available_maps)
